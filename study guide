@@ -1,3 +1,93 @@
+1. Configuring vm:
+Name: joaoalme
+Machinefolder: /nfs/homes/joaoalme/sgoinfre
+Type: Linux
+Version: Debian (64-bit)
+Memory size: 1024 MB
+Create a virtual disk now >> next
+VDI >> next
+Dynamically allocated >> next
+30.8 GB >> next
+Select optical drive >> Debian Image in your machine
+Start VM
+
+2. Installing Linux:
+Select all standard languages
+Hostname: joaoalme42
+Domain name:
+Full name: joaoalme
+New user name: joaoalme
+
+3. Partioning disk
+partioning method: Manual
+Select your disk (33.1 GB ATA VBOX HARDDISK in my case)
+Create new empty partition table on this device: Yes
+
+Select FREE SPACE
+Create a new partition
+New patition size: 500M
+Type: primary
+Location: beginning
+Use as: ext4
+Mount point: boot
+Bootable flag: on
+Done setting up the partition
+
+Configure encrypted volumes
+Write changes to disk? yes
+create encrypted volumes
+Select /dev/sda5 (32568MB) >> with space bar
+Really erase the data? Yes - You can cancel for this project
+Encryption passphrase: 
+
+Select FREE SPACE
+Create a new partition
+New patition size: MAX
+Type: logical
+Use as: ext4
+Mount point: do not mount
+Bootable flag: off
+Done setting up the partition
+
+Configure the logical volume manager:
+Write changes to disk? yes
+Create volume groups
+Define group name: LVMGroup
+Devices for the new volume group: /dev/mapper/sda5_crypt
+
+New patition size: 10G
+Mount point: root
+
+New patition size: 5G
+Mount point: /home
+
+New patition size: 3G
+Mount point: /var
+
+New patition size: 3G
+Mount point: /srv
+
+New patition size: 3G
+Mount point: /tmp
+
+New patition size: 4G
+Mount point: define manually >> /var/log
+
+Scan extra media: NO
+Select country: Portugal
+Select mirror: Debian.org
+Unselect all software to install
+Install grub boot loader to your primary drive? Yes
+Select device
+
+
+
+Configuring paritions:
+Hostname: joaoalme42
+username: joaoalme
+
+
+
 # User and groups managemnet:
 https://www.makeuseof.com/user-management-linux-guide/
 https://www.redhat.com/sysadmin/linux-user-group-management
@@ -10,4 +100,11 @@ https://www.cyberciti.biz/faq/ubuntu-linux-install-openssh-server/
 
 #UFW - Uncomplicated Firewall
 https://www.linux.com/training-tutorials/introduction-uncomplicated-firewall-ufw/
+
 https://www.cyberciti.biz/faq/ufw-allow-incoming-ssh-connections-from-a-specific-ip-address-subnet-on-ubuntu-debian/
+
+#Strong password policy:
+https://www.linuxtechi.com/enforce-password-policies-linux-ubuntu-centos/
+
+10.11.250.82
+
