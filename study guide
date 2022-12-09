@@ -1,3 +1,13 @@
-User and groups managemnet:
+# User and groups managemnet:
 https://www.makeuseof.com/user-management-linux-guide/
 https://www.redhat.com/sysadmin/linux-user-group-management
+
+# systemctl command:
+https://www.redhat.com/sysadmin/linux-systemctl-manage-services
+
+#SSH service (OpenSSH):
+https://www.cyberciti.biz/faq/ubuntu-linux-install-openssh-server/
+
+#UFW - Uncomplicated Firewall
+https://www.linux.com/training-tutorials/introduction-uncomplicated-firewall-ufw/
+https://www.cyberciti.biz/faq/ufw-allow-incoming-ssh-connections-from-a-specific-ip-address-subnet-on-ubuntu-debian/
