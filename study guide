@@ -86,25 +86,248 @@ Configuring paritions:
 Hostname: joaoalme42
 username: joaoalme
 
+4. Check information about your devices
+
+lsblk - list block devices - Prints all block devices (except RAM disks) in a tree-like
+       format by default
+      
+Logint as root user:
+	su -
+
+Install sudo:
+	apt install sudo	
+
+Add my user to sudo group:
+	usermod -aG sudo joaoalme
+	-a = append
+	-G = groups
+	Append the group the user groups list
+
+Edit the sudoers file to give the user all privileges
+	add under '# User privilege specification' 
+	joaoalme ALL=(ALL) ALL
+
+Intall essencial programs - VIM and Git
+	apt-get install git 
+	apt-get install vim
+	
+Intall OpenSSH and configure
+https://www.cyberciti.biz/faq/ubuntu-linux-install-openssh-server/
+	sudo apt install openssh-server
+	sudo vim /etc/ssh/sshd_config
+	Find the line '#Port', uncoment it and add 4242 - (Port 4242)
+	Save and exit
+	sudo service ssh restart
+	To check if its done type sudo grep Port /etc/ssh/sshd_config
+
+Install UFW and configure
+https://www.linux.com/training-tutorials/introduction-uncomplicated-firewall-ufw/
+https://www.cyberciti.biz/faq/ufw-allow-incoming-ssh-connections-from-a-specific-ip-address-subnet-on-ubuntu-debian/
+	apt-get install ufw
+	sudo ufw enable
+	sudo ufw allow ssh
+	sudo ufw allow 4242
+	To check if its all done use:
+	sudo ufw status numbered
+	If there are other open ports than 4242, close them:
+	sudo ufw deny 'port_number'
+	
+Configure SSH connection:
+	In Virtual Box (GUI interface) > Settings > Network > Adapter 1 > Attached to: 
+	Change from 'NAT' to 'Bridged Adapter'.
+	Restart ssh: 
+	sudo systemctl restart ssh
+	Get your ip:
+	ip a | grep inet | grep 'global dynamic' | cut -d'/' -f1 | awk '{ print $2 }'
+	Set the remote acess trough ssh port 4242:
+	sudo ssh your_username@0.0.0.0 -p 4242 >> sudo ssh joaoalme@192.168.1.81 -p 4242
+	Now in the host machine (42 PC):
+	ssh username@your_ip -p 4242 >> ssh joaoalme@192.168.1.81 -p 4242
+	enter the password(s)
+	
+Set up a strong password policy:
+https://www.linuxtechi.com/enforce-password-policies-linux-ubuntu-centos/
+	Install  the libpam-pwquality package:
+	sudo apt-get install libpam-pwquality
+	sudo vim /etc/pam.d/common-password
+	locate the line that defines password requisite and after pam_pwquality.so type:
+	retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
+	Save and exit	
+	Edit the 'Configuration control definitions for the login package' file:
+	sudo vim /etc/login.defs
+	Edit following lines:
+	PASS_MAX_DAYS 9999	 
+	PASS_MIN_DAYS 0 
+	PASS_WARN_AGE 7
+	to 
+	PASS_MAX_DAYS 30	 
+	PASS_MIN_DAYS 2 
+	PASS_WARN_AGE 7
+
+Configure Sudoers Group and sudo log file
+	https://medium.com/kernel-space/linux-fundamentals-a-to-z-of-a-sudoers-file-a5da99a30e7f
+	cd /etc
+	sudo visudo 
+	Defaults	env_reset
+	Defaults	mail_badpass
+	Paths that can be used by sudo:
+	Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+	Custom message to be displayed if an error due to a wrong password:
+	Defaults	badpass_message="Password is wrong, please try again!"
+	Authentication using sudo limited to 3 attempts:
+	Defaults	passwd_tries=3
+	The path of the log file of all sudo actions:
+	Defaults	logfile="/var/log/sudo.log"
+	Define to archive log inputs and outputs:
+	Defaults	log_input, log_output
+	Enable tty:
+	Defaults	requiretty
+	Save and exit
+	Configure sudo log file	
+	cd /var/log
+	mkdir sudo
+	touch sudo.log
+	
+Managing users and groups:
+	Create a group called 'user42':
+	sudo groupadd user42
+	Assign my user to group:
+	sudo usermod -aG user42 joaoalme
+	
+	*Usefull information in user management:
+	/etc/passwd file: contain information about all users:
+		username:password:UID:GID:comment:home:shell
+	/etc/shadow file: contain information about passwords
+		username:password:last password change:min:max:warning:inactive:expired
+	commands:
+		sudo useradd 'user_name' - Create an user account.
+		sudo passwd 'user_name' - Change password for an user
+		sudo passwd -S 'user_name' - Check status of an account
+		sudo passwd -l 'user_name' - Change password for an user
+		sudo userdel -r 'user_name' - remove the user account and the home directory
+	*Usefull information in user management:
+	/etc/group file:  contains group account information
+		 groupname:password:GID:group members
+	commands: 
+		sudo groupadd 'group_name'- creates a group
+		sudo groupmod -g - change GID
+		sudo groupmod -n 'old_group_name' 'new_group_name- change the groupname 
+		sudo groupdel 'group_name' - deletes a group
+	*Usefull commands in managing users in groups:
+		usermod - add a user to a group, change a user shell, login name, home directory, and more
+		sudo usermod -aG 'group' 'user' >> add an user to a group
+		sudo usermod -g 'group' 'user' >> change primary group of an user
+		sudo usermod -c 'group' 'user' >> change the comment 
+		sudo usermod -d '/homedir' 'user' >> change the home directory of an user.
+		sudo usermod -s '/usr/bin/zsh' 'user' >> change the shell of an user (to zshel in this case)
+		sudo usermod -l 'old_user_name' 'new_user_name' >> Change the user name.
+	
+Shell Script
+
+Your script must always be able to display the following information:
+• The architecture of your operating system and its kernel version.
+	uname -a get the architecture (-a stands for all)
+• The number of physical processors.
+	/proc/cpuinfo has the hardware info
+	grep "physical id" /proc/cpuinfo | sort | uniq | wc -l
+• The number of virtual processors.
+	grep "^processor" /proc/cpuinfo | wc -l
+• The current available RAM on your server and its utilization rate as a percentage.
+	ram -m >> show the free RAM available and SWAP if available
+	grep Mem and print 4th field with awk '{print $2}' >> free -m | grep Mem | awk '{print $2}'
+	to get thw usage divide the free by used memory using fields and AWK >>
+	free -m | grep Mem | awk '{printf("%.2f"), $3/$2*100}'
+• The current available memory on your server and its utilization rate as a percentage.
+	To see the server space >> df 
+	to show it in MB >> flag -m. To show in GB, 2 flags, -B (block size) -g (makes the size in GB).
+	Our server it's the lines that start with /dev/ >> grep '^/dev/', the ^ means the beggining of the line
+	Take off the line with boot we can use grep -v '/boot$' (-v flag, deselect the line, $ flag select the end
+	of the line) combined they take out the line that ends with.
+	We need the sum of the 3 lineso. In the variable (fdisk) we add the lines of the same column:
+	awk '{fdisk += $4} and END {print fdisk}.
+	df -Bm | grep '^/dev/' | grep -v '/boot$' | awk '{fdisk += $4} END {print fdisk}'
+• The current utilization rate of your processors as a percentage.
+	top -bn1 >> -b starts top in batch(discontinuous) mode and -n1 indacates to produce one iteration
+	grep '^%Cpu' >> takes the line that starts with '%Cpu'
+	awk '{printf("%.1f%%"), $2}' >> takes the 2nd field and prints it with 1 decimal place and one percent
+	top -bn1 | grep '^%Cpu' | awk '{printf("%.1f%%"), $2}'
+• The date and time of the last reboot.
+	who - b >> prints out information about users who are currently loggend in. -b show the time of last reboot
+	awk '{print $3 " " $4}' >> takes 3rd and 4th columns and add aa space between them
+	who -b | awk '{print $3 " " $4}'
+• Whether LVM is active or not.
+	lsblk >> show the partitions. 
+	grep 'lvm'
+	with awk check if there's a column 1. If yse print "LVM is active"
+	lsblk | grep 'lvm' | awk '{if ($1) {print "LVM is active";exit;} else {print "no"}}'
+• The number of active connections.
+	ss -t >> displays network socket related info. -t stands for TCP
+	grep ESTAB >> get the actives
+	wc -l >> to count it
+	ss -t | grep ESTAB | wc -l	
+• The number of users using the server.
+	who >> show users connected
+	cut -d " " -f1 >> Use delimiter (" ") for field separation instead of tab and teke the first field
+	sort -u >> uniq
+	wc -l >> count
+	who | cut -d " " -f 1 | sort -u | wc -l	
+• The IPv4 address of your server and its MAC (Media Access Control) address.
+	hostname -I  >> Displays all network addresses of the host
+	ip link show >> shows the network device
+	grep ether | awk '{print $2}'>> take the line with ether and print field 2
+	ip link show | grep ether | awk '{print $2}'
+• The number of commands executed with the sudo program.
+	sudo apt install net-tools >> in order to use journalctl
+	Now we have access to the command journalctl may be used to query the contents of the systemd(1) journal as
+	written by systemd-journald.service(8), lets add _COMM to match for the script name (sudo)is added to the
+	query. Lets grab just the commands thats what we want grep COMMAND, and lets cound the number of lines wc -l.
+	journalctl _COMM=sudo | grep COMMAND | wc -l
+
+Create a Shell script in:
+sudo vim /usr/local/bin/monitoring.sh
+change permissions to 777:
+chmod 777 monitoring.sh
+sudo visudo >> add rule in sudoers file
+under:
+#Allow members of group sudo to execute any command"
+joaoalme ALL=(ALL) NOPASSWD: /usr/local/bin/monitoring.shbmiguel- ALL=(ALL) NOPASSWD: /usr/local/bin/monitoring.sh
+sudo crontab -e >> set time of executions of the script
 
 
-# User and groups managemnet:
-https://www.makeuseof.com/user-management-linux-guide/
-https://www.redhat.com/sysadmin/linux-user-group-management
+#!/bin/bash
+
+arch=$(uname -a)
+phyproc=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
+virtproc=$(grep "^processor" /proc/cpuinfo | wc -l)
+ram_free=$(free -m | grep Mem | awk '{print $4}')
+ram_total=$(free -m | grep Mem | awk '{print $2}')
+ram_usage_percent=$(free -m | grep Mem | awk '{printf("%.2f"), $3/$2*100}')
+free_disk=$(df -Bm | grep '^/dev/' | grep -v '/boot$' | awk '{fdisk += $4} END {print fdisk}')
+total_disk=$(df -Bg | grep '^/dev/' | grep -v '/boot$' | awk '{tdisk += $2} END {print tdisk}')
+disk_usage_percent=$(df -Bm | grep '^/dev/' | grep -v '/boot$' | awk '{fdisk += $3} {tdisk += $2} END {printf("%.2f"), fdisk/tdisk*100}')
+proc_usage_percent=$(top -bn1 | grep '^%Cpu' | awk '{printf("%.1f%%"), $2}')
+last_boot=$(who -b | awk '{print $3 " " $4}')
+lvm_active=$(lsblk | grep 'lvm' | awk '{if ($1) {printf "\033[0;32mYes\033[0m";exit} else {print "\033[0;031mNo\033[0m";exit;}}')
+n_active_connect=$(ss -t | grep ESTAB | wc -l)
+n_users_server=$(who | cut -d " " -f 1 | sort -u | wc -l)
+ipv4=$(hostname -I)
+mac=$(ip link show | grep ether | awk '{print $2}')
+n_commands_sudo=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
+
+wall "  #Architecture: $arch
+        #CPU physical: $phyproc
+        #vCPU: $virtproc
+        #Memory Free: ${ram_free}MB/${ram_total}MB ($ram_usage_percent%)
+        #Disk Free: ${free_disk}MB/${total_disk}GB ($disk_usage_percent%)
+        #CPU load: $proc_usage_percent
+        #Last boot: $last_boot
+        #LVM use: $lvm_active
+        #Connections TCP: $n_active_connect ESTABLISHED
+        #User log: $n_users_server
+        #Network: IP $ipv4 ($mac)
+        #Sudo: $n_commands_sudo cmd"
+
+
 
 # systemctl command:
 https://www.redhat.com/sysadmin/linux-systemctl-manage-services
-
-#SSH service (OpenSSH):
-https://www.cyberciti.biz/faq/ubuntu-linux-install-openssh-server/
-
-#UFW - Uncomplicated Firewall
-https://www.linux.com/training-tutorials/introduction-uncomplicated-firewall-ufw/
-
-https://www.cyberciti.biz/faq/ufw-allow-incoming-ssh-connections-from-a-specific-ip-address-subnet-on-ubuntu-debian/
-
-#Strong password policy:
-https://www.linuxtechi.com/enforce-password-policies-linux-ubuntu-centos/
-
-10.11.250.82
-
