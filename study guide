@@ -193,6 +193,11 @@ Managing users and groups:
 	sudo groupadd user42
 	Assign my user to group:
 	sudo usermod -aG user42 joaoalme
+	To manage services:
+		service "service name" start/stop/status/restart
+	To define service to be started or not at initialization:
+		sudo /etc/init.d/service_name start
+					      stop
 	
 	*Usefull information in user management:
 	/etc/passwd file: contain information about all users:
@@ -200,11 +205,13 @@ Managing users and groups:
 	/etc/shadow file: contain information about passwords
 		username:password:last password change:min:max:warning:inactive:expired
 	commands:
+		sudo awk -F':' '{ print $1}' /etc/passwd - list only usernames 
 		sudo useradd 'user_name' - Create an user account.
 		sudo passwd 'user_name' - Change password for an user
 		sudo passwd -S 'user_name' - Check status of an account
 		sudo passwd -l 'user_name' - Change password for an user
 		sudo userdel -r 'user_name' - remove the user account and the home directory
+		getent passwd | wc -l - count all users
 	*Usefull information in user management:
 	/etc/group file:  contains group account information
 		 groupname:password:GID:group members
@@ -228,7 +235,7 @@ Your script must always be able to display the following information:
 • The architecture of your operating system and its kernel version.
 	uname -a get the architecture (-a stands for all)
 • The number of physical processors.
-	/proc/cpuinfo has the hardware info
+	/proc/cpuinfo has the hardware infosud
 	grep "physical id" /proc/cpuinfo | sort | uniq | wc -l
 • The number of virtual processors.
 	grep "^processor" /proc/cpuinfo | wc -l
@@ -290,7 +297,7 @@ chmod 777 monitoring.sh
 sudo visudo >> add rule in sudoers file
 under:
 #Allow members of group sudo to execute any command"
-joaoalme ALL=(ALL) NOPASSWD: /usr/local/bin/monitoring.shbmiguel- ALL=(ALL) NOPASSWD: /usr/local/bin/monitoring.sh
+joaoalme ALL=(ALL) NOPASSWD: /usr/local/bin/monitoring.sh
 sudo crontab -e >> set time of executions of the script
 
 
@@ -327,7 +334,7 @@ wall "  #Architecture: $arch
         #Network: IP $ipv4 ($mac)
         #Sudo: $n_commands_sudo cmd"
 
-
-
 # systemctl command:
 https://www.redhat.com/sysadmin/linux-systemctl-manage-services
+
+
